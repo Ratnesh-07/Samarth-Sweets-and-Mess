@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7C3131">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Samartha Sweets & Mess ERP</title>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --bg: #FAF6EC;
+    --paper: #FFFDF8;
+    --ink: #2B2318;
+    --ink-soft: #6b5f4d;
+    --maroon: #7C3131;
+    --maroon-dark: #5c2323;
+    --turmeric: #C98A1A;
+    --line: #E5D9C0;
+    --good: #4A7856;
+    --bad: #B24444;
+    --shadow: 0 1px 0 rgba(43,35,24,0.06);
+  }
+  html.dark{
+    --bg: #1E1B16;
+    --paper: #2A251E;
+    --ink: #F0E9DC;
+    --ink-soft: #B5A88F;
+    --maroon: #C97070;
+    --maroon-dark: #E39696;
+    --turmeric: #E3B24E;
+    --line: #3D362A;
+    --good: #6FBF8C;
+    --bad: #E38080;
+    --shadow: 0 1px 0 rgba(0,0,0,0.2);
+  }
+  body{ transition: background 0.2s, color 0.2s; }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .app{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 18px 14px 60px;
+  }
+  header.top{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 6px 4px 16px;
+    border-bottom: 2px solid var(--maroon);
+    margin-bottom: 14px;
+  }
+  .app-logo{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px var(--maroon), 0 2px 6px rgba(0,0,0,0.15);
+  }
+  header.top h1{
+    font-size: 22px;
+    margin:0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.top .sub{
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  nav.tabs{
+    display:flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--line);
+    padding: 4px;
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+  nav.tabs button{
+    flex: 0 0 auto;
+    padding: 9px 12px;
+    border:none;
+    background: transparent;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-radius: 7px;
+    cursor:pointer;
+    white-space: nowrap;
+  }
+  nav.tabs button.active{
+    background: var(--paper);
+    color: var(--maroon-dark);
+    box-shadow: var(--shadow);
+  }
+  section{ display:none; }
+  section.active{ display:block; }
+
+  .card{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .card h2{
+    font-size: 15px;
+    margin: 0 0 10px;
+    color: var(--maroon-dark);
+  }
+  .row{ display:flex; gap:8px; flex-wrap: wrap; margin-bottom:8px; }
+  .row > *{ flex:1; min-width: 100px; }
+  label{ font-size: 11.5px; color: var(--ink-soft); display:block; margin-bottom:3px; }
+  input, select{
+    width:100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--ink);
+  }
+  button.primary{
+    background: var(--maroon);
+    color: #fff;
+    border:none;
+    padding: 10px 16px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor:pointer;
+    width:100%;
+  }
+  button.primary:active{ background: var(--maroon-dark); }
+  button.ghost{
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .student-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--line);
+    gap: 8px;
+  }
+  .student-row:last-child{ border-bottom:none; }
+  .student-name{ font-weight:600; font-size:14.5px; }
+  .student-meta{ font-size: 11.5px; color: var(--ink-soft); }
+  .badge{
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space:nowrap;
+  }
+  .badge.paid{ background:#e4efe6; color: var(--good); }
+  .badge.due{ background:#f6e3e3; color: var(--bad); }
+  .empty{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 24px 10px;
+  }
+  .month-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 12px;
+  }
+  .month-nav .m-label{ font-weight:700; font-size: 15px; }
+  .month-nav button{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    width: 32px; height: 32px;
+    font-size: 16px;
+    cursor:pointer;
+    color: var(--maroon-dark);
+  }
+  .att-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+  }
+  .att-day{
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 12px;
+    cursor:pointer;
+    background: #fff;
+    color: var(--ink-soft);
+  }
+  .att-day.present{ background: var(--good); color:#fff; border-color: var(--good); }
+  .att-day.blank{ visibility:hidden; }
+  .student-picker{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .chip{
+    flex-shrink:0;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    font-size: 12.5px;
+    font-weight: 600;
+    background: #fff;
+    color: var(--ink-soft);
+    cursor:pointer;
+  }
+  .chip.sel{ background: var(--maroon); color:#fff; border-color: var(--maroon); }
+  .tiffin-entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 9px 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+  }
+  .tiffin-entry:last-child{ border-bottom:none; }
+  .amt{ font-weight:700; color: var(--maroon-dark); }
+  .summary-strip{
+    display:flex;
+    gap:8px;
+    margin-bottom: 14px;
+  }
+  .stat{
+    flex:1;
+    background: var(--paper);
+    border:1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    text-align:center;
+  }
+  .stat .n{ font-size: 18px; font-weight:800; color: var(--maroon-dark); }
+  .stat .l{ font-size: 10.5px; color: var(--ink-soft); margin-top:2px; }
+  .del{ color: var(--bad); font-size: 11px; background:none; border:none; cursor:pointer; padding: 4px; }
+  .loading{ text-align:center; padding: 40px; color: var(--ink-soft); font-size:13px; }
+  .toast{
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--maroon-dark);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    z-index: 100;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  }
+  .toast button{
+    background: rgba(255,255,255,0.18);
+    border:none;
+    color:#fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .avatar{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--line);
+    flex-shrink:0;
+  }
+  .avatar-placeholder{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--line);
+    color: var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;
+    flex-shrink:0;
+  }
+  .row-with-avatar{ display:flex; align-items:center; gap:10px; flex:1; }
+  .check{ width:18px; height:18px; flex-shrink:0; }
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); }
+  .toggle-row:last-child{ border-bottom:none; }
+  .switch{ position:relative; width:42px; height:24px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; cursor:pointer; inset:0; background:var(--line); border-radius:24px; transition:0.2s; }
+  .slider:before{ position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.2s; }
+  input:checked + .slider{ background: var(--maroon); }
+  input:checked + .slider:before{ transform: translateX(18px); }
+  .badge.low{ background:#fbe9d3; color: var(--turmeric); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="loading">Loading your register…</div>
+</div>
+
+<script>
+// ====== PASTE YOUR FIREBASE CONFIG HERE (see SETUP.md) ======
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_API_KEY_HERE",
+  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
+  projectId: "PASTE_PROJECT_ID",
+  storageBucket: "PASTE_PROJECT_ID.appspot.com",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
+};
+// ================================================================
+
+const STORAGE_KEY = 'mess-data-v1';
+const LOGO_B64 = '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';
+const RATES = { Boy: 2500, Girl: 2200 };
+const TIFFIN_RATE = 60;
+
+const DEFAULT_PRODUCTS = [
+  { id: 'beetroot-barfi', name: 'Beetroot Barfi', category: 'Sweet', packets: [
+    { size: '100g', price: 40 },
+    { size: '250g', price: 100 },
+    { size: '500g', price: 200 },
+    { size: '1kg', price: 400 }
+  ]},
+  { id: 'varadi-chiwda', name: 'Varadi Chiwda', category: 'Namkeen', packets: [
+    { size: '250g', price: 50 },
+    { size: '500g', price: 100 }
+  ]}
+];
+
+let data = { students: [], attendance: {}, payments: [], tiffinLog: [], products: DEFAULT_PRODUCTS, sweetSales: [], production: [], expenses: [], settings: { dueDay: 5, darkMode: false, pin: null, lowStock: {} } };
+let currentTab = 'dashboard';
+let attMonth = new Date();
+let attSelectedStudent = null;
+let sweetMonth = new Date();
+let paymentStatusChart = null;
+let revenueTrendChart = null;
+let selectedPendingIds = new Set();
+let unlocked = false;
+let pinEntryValue = '';
+
+function lastNMonths(n){
+  const out = [];
+  const now = new Date();
+  for(let i=n-1;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    out.push({ key: monthKey(d), label: d.toLocaleDateString('en-IN',{month:'short'}) });
+  }
+  return out;
+}
+
+let db = null;
+
+function normalizeData(raw){
+  const d = (raw && typeof raw === 'object') ? raw : {};
+  d.students = d.students || [];
+  d.attendance = d.attendance || {};
+  d.payments = d.payments || [];
+  d.tiffinLog = d.tiffinLog || [];
+  d.products = (d.products && d.products.length && d.products[0].packets) ? d.products : DEFAULT_PRODUCTS;
+  d.sweetSales = d.sweetSales || [];
+  d.production = d.production || [];
+  d.expenses = d.expenses || [];
+  d.settings = d.settings || { dueDay: 5, darkMode: false, pin: null, lowStock: {} };
+  d.settings.dueDay = d.settings.dueDay || 5;
+  d.settings.lowStock = d.settings.lowStock || {};
+  return d;
+}
+
+function loadData(){
+  if(FIREBASE_CONFIG.apiKey === 'PASTE_API_KEY_HERE'){
+    document.getElementById('app').innerHTML = '<div style="max-width:420px;margin:60px auto;padding:0 16px;"><div class="card"><h2>Setup needed</h2><div class="student-meta">This app needs your Firebase details before it can run. Open SETUP.md in this project for step-by-step instructions, then paste your config into index.html where it says FIREBASE_CONFIG.</div></div></div>';
+    return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+  }catch(e){
+    document.getElementById('app').innerHTML = '<div class="card"><div class="empty">Firebase could not start. Double-check the config values in index.html.</div></div>';
+    return;
+  }
+  db.collection('messShared').doc('main').onSnapshot((snap)=>{
+    if(snap.exists && snap.data().json){
+      try{ data = normalizeData(JSON.parse(snap.data().json)); }catch(e){ data = normalizeData(data); }
+    } else {
+      data = normalizeData(data);
+    }
+    applyTheme();
+    if(data.settings.pin && !unlocked){
+      renderLockScreen();
+    } else {
+      render();
+    }
+  }, (err)=>{
+    console.error('Firestore error', err);
+    document.getElementById('app').innerHTML = '<div class="card"><div class="empty">Could not connect to the shared database. Check your internet connection and that Firestore rules allow access (see SETUP.md).</div></div>';
+  });
+}
+
+function applyTheme(){
+  document.documentElement.classList.toggle('dark', !!data.settings.darkMode);
+}
+
+function renderLockScreen(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div style="max-width:320px;margin:60px auto;text-align:center;">
+      <img class="app-logo" src="data:image/webp;base64,${LOGO_B64}" alt="Samartha Sweets logo" style="width:72px;height:72px;margin-bottom:14px;">
+      <h1 style="font-size:20px;margin-bottom:6px;">Samartha Sweets &amp; Mess ERP</h1>
+      <div style="color:var(--ink-soft);font-size:13px;margin-bottom:20px;">Enter PIN to unlock</div>
+      <div id="pin-dots" style="display:flex;gap:10px;justify-content:center;margin-bottom:20px;">
+        ${Array(4).fill(0).map((_,i)=>`<div style="width:14px;height:14px;border-radius:50%;border:2px solid var(--maroon);background:${i<pinEntryValue.length?'var(--maroon)':'transparent'};"></div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto;">
+        ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k=>`<button class="ghost pin-key" data-key="${k}" style="padding:16px 0;font-size:16px;">${k}</button>`).join('')}
+      </div>
+      <div id="pin-error" style="color:var(--bad);font-size:12px;margin-top:14px;height:14px;"></div>
+    </div>
+  `;
+  app.querySelectorAll('.pin-key').forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.dataset.key;
+      if(k==='⌫'){ pinEntryValue = pinEntryValue.slice(0,-1); renderLockScreen(); return; }
+      if(k==='') return;
+      if(pinEntryValue.length<4){ pinEntryValue += k; }
+      if(pinEntryValue.length===4){
+        if(pinEntryValue===data.settings.pin){
+          unlocked = true; pinEntryValue=''; render();
+        } else {
+          document.getElementById('pin-error').textContent = 'Incorrect PIN';
+          pinEntryValue = '';
+          setTimeout(renderLockScreen, 400);
+          return;
+        }
+      }
+      renderLockScreen();
+    };
+  });
+}
+
+async function saveData(){
+  try{
+    await db.collection('messShared').doc('main').set({ json: JSON.stringify(data), updatedAt: Date.now() });
+  }catch(e){
+    console.error('save failed', e);
+    alert('Could not save — check your internet connection.');
+  }
+}
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function fmtMoney(n){ return '₹' + n.toLocaleString('en-IN'); }
+
+function waLink(phone, message){
+  const digits = (phone||'').replace(/\D/g,'');
+  const withCode = digits.length===10 ? '91'+digits : digits;
+  return `https://wa.me/${withCode}?text=${encodeURIComponent(message)}`;
+}
+
+async function sendReminder(name, phone, message){
+  if(phone && phone.replace(/\D/g,'').length>=10){
+    window.open(waLink(phone, message), '_blank');
+  } else {
+    try{
+      await navigator.clipboard.writeText(message);
+      alert('No phone number saved for ' + name + ' — reminder text copied instead, so you can paste it anywhere.');
+    }catch(e){
+      alert(message);
+    }
+  }
+}
+
+function packetToGrams(size){
+  if(size.toLowerCase().includes('kg')) return parseFloat(size) * 1000;
+  return parseFloat(size);
+}
+
+function downloadCSV(filename, headers, rows){
+  const csv = [headers.join(','), ...rows.map(r=>r.map(cell=>{
+    const s = String(cell ?? '');
+    return s.includes(',') || s.includes('"') ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+let toastTimer = null;
+function showToast(message, undoFn){
+  const old = document.querySelector('.toast');
+  if(old) old.remove();
+  if(toastTimer) clearTimeout(toastTimer);
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span>${message}</span>${undoFn ? '<button id="toast-undo-btn">UNDO</button>' : ''}`;
+  document.body.appendChild(toast);
+  if(undoFn){
+    toast.querySelector('#toast-undo-btn').onclick = async ()=>{
+      await undoFn();
+      toast.remove();
+      render();
+    };
+  }
+  toastTimer = setTimeout(()=>toast.remove(), 6000);
+}
+
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `samartha-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!imported || !Array.isArray(imported.students)){ throw new Error('bad format'); }
+      data = imported;
+      data.expenses = data.expenses || [];
+      data.settings = data.settings || { dueDay: 5, darkMode: false, pin: null, lowStock: {} };
+      await saveData();
+      applyTheme();
+      alert('Backup restored successfully.');
+      render();
+    }catch(err){
+      alert('This file could not be read as a valid backup.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function stockFor(productId){
+  const producedG = data.production.filter(p=>p.productId===productId).reduce((s,p)=>s+p.qtyKg*1000,0);
+  const soldG = data.sweetSales.filter(s=>s.productId===productId).reduce((s,sale)=>s+packetToGrams(sale.packetSize)*sale.qty,0);
+  return { producedG, soldG, remainingG: producedG - soldG };
+}
+function fmtG(g){
+  return g>=1000 ? (g/1000).toFixed(g%1000===0?0:2)+'kg' : Math.round(g)+'g';
+}
+
+function isOverdueNow(){
+  return new Date().getDate() > (data.settings.dueDay || 5);
+}
+
+function render(){
+  if(!unlocked){ return; }
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <header class="top">
+      <img class="app-logo" src="data:image/webp;base64,${LOGO_B64}" alt="Samartha Sweets logo">
+      <div>
+        <h1>Samartha Sweets &amp; Mess ERP</h1>
+        <div class="sub">${data.students.length} student${data.students.length===1?'':'s'} enrolled</div>
+      </div>
+    </header>
+    <nav class="tabs">
+      <button data-tab="dashboard" class="${currentTab==='dashboard'?'active':''}">Dashboard</button>
+      <button data-tab="students" class="${currentTab==='students'?'active':''}">Students</button>
+      <button data-tab="attendance" class="${currentTab==='attendance'?'active':''}">Attendance</button>
+      <button data-tab="payments" class="${currentTab==='payments'?'active':''}">Payments</button>
+      <button data-tab="tiffin" class="${currentTab==='tiffin'?'active':''}">Tiffin Log</button>
+      <button data-tab="sweets" class="${currentTab==='sweets'?'active':''}">Sweets &amp; Namkeen</button>
+      <button data-tab="expenses" class="${currentTab==='expenses'?'active':''}">Expenses</button>
+      <button data-tab="settings" class="${currentTab==='settings'?'active':''}">Settings</button>
+    </nav>
+    <div id="tab-content"></div>
+  `;
+  document.querySelectorAll('nav.tabs button').forEach(b=>{
+    b.onclick = ()=>{ currentTab = b.dataset.tab; render(); };
+  });
+  const content = document.getElementById('tab-content');
+  if(currentTab==='dashboard') renderDashboard(content);
+  if(currentTab==='students') renderStudents(content);
+  if(currentTab==='attendance') renderAttendance(content);
+  if(currentTab==='payments') renderPayments(content);
+  if(currentTab==='tiffin') renderTiffin(content);
+  if(currentTab==='sweets') renderSweets(content);
+  if(currentTab==='expenses') renderExpenses(content);
+  if(currentTab==='settings') renderSettings(content);
+}
+
+// ---------- DASHBOARD ----------
+function renderDashboard(el){
+  const mk = monthKey(new Date());
+  const monthLabel = new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  const paidThisMonth = data.payments.filter(p=>p.month===mk);
+  const collected = paidThisMonth.reduce((s,p)=>s+p.amount,0);
+  const pendingStudents = data.students.filter(s=>!paidThisMonth.find(p=>p.studentId===s.id));
+  const unpaidTiffin = data.tiffinLog.filter(t=>!t.paid);
+  const unpaidTiffinTotal = unpaidTiffin.reduce((s,t)=>s+t.amount,0);
+  const sweetsSalesThisMonth = data.sweetSales.filter(s=>s.date.slice(0,7)===mk);
+  const sweetsRevenue = sweetsSalesThisMonth.reduce((s,x)=>s+x.amount,0);
+  const totalPendingCount = pendingStudents.length + unpaidTiffin.length;
+  const expensesThisMonth = data.expenses.filter(e=>e.date.slice(0,7)===mk).reduce((s,e)=>s+e.amount,0);
+  const netProfit = collected + sweetsRevenue - expensesThisMonth;
+  const overdue = isOverdueNow();
+
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${data.students.length}</div><div class="l">Students</div></div>
+      <div class="stat"><div class="n">${fmtMoney(collected)}</div><div class="l">Mess collected · ${monthLabel}</div></div>
+      <div class="stat"><div class="n">${totalPendingCount}</div><div class="l">Pending dues</div></div>
+    </div>
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(sweetsRevenue)}</div><div class="l">Sweets/Namkeen revenue this month</div></div>
+      <div class="stat"><div class="n">${fmtMoney(unpaidTiffinTotal)}</div><div class="l">Unpaid tiffin dues</div></div>
+    </div>
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(expensesThisMonth)}</div><div class="l">Expenses this month</div></div>
+      <div class="stat"><div class="n" style="color:${netProfit>=0?'var(--good)':'var(--bad)'};">${fmtMoney(netProfit)}</div><div class="l">Net profit this month</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Payment status this month</h2>
+      <div style="position:relative;height:180px;max-width:260px;margin:0 auto;">
+        <canvas id="paymentStatusChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Revenue trend — last 6 months</h2>
+      <div style="position:relative;height:200px;">
+        <canvas id="revenueTrendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Needs attention — pending payments</h2>
+      ${totalPendingCount===0 ? '<div class="empty">Nothing pending right now. All caught up.</div>' : `
+        ${pendingStudents.map(s=>`
+          <div class="student-row">
+            <div>
+              <div class="student-name">${s.name}</div>
+              <div class="student-meta">Mess fee · ${fmtMoney(RATES[s.gender])} · ${monthLabel}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${overdue?'<span class="badge due">OVERDUE</span>':''}
+              <button class="ghost dash-remind-mess" data-id="${s.id}">Remind</button>
+              <button class="ghost dash-pay-mess" data-id="${s.id}">Mark paid</button>
+            </div>
+          </div>
+        `).join('')}
+        ${unpaidTiffin.map(t=>`
+          <div class="student-row">
+            <div>
+              <div class="student-name">${t.name}</div>
+              <div class="student-meta">Tiffin · ${t.count} pkt · ${fmtMoney(t.amount)} · ${new Date(t.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="ghost dash-remind-tiffin" data-id="${t.id}">Remind</button>
+              <button class="ghost dash-pay-tiffin" data-id="${t.id}">Mark paid</button>
+            </div>
+          </div>
+        `).join('')}
+      `}
+    </div>
+
+    <div class="card">
+      <h2>Stock on hand</h2>
+      ${data.products.length===0 ? '<div class="empty">No products set up.</div>' : data.products.map(p=>{
+        const st = stockFor(p.id);
+        const threshold = data.settings.lowStock[p.id] || 500;
+        const isLow = st.remainingG <= threshold;
+        return `
+          <div class="student-row">
+            <div>
+              <div class="student-name">${p.name}</div>
+              <div class="student-meta">Made ${fmtG(st.producedG)} · Sold ${fmtG(st.soldG)}</div>
+            </div>
+            <span class="badge ${st.remainingG<=0?'due':(isLow?'low':'paid')}">${fmtG(Math.max(st.remainingG,0))} left${isLow&&st.remainingG>0?' · LOW':''}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  el.querySelectorAll('.dash-pay-mess').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const s = data.students.find(x=>x.id===btn.dataset.id);
+      data.payments.push({ id: uid(), studentId: s.id, month: mk, amount: RATES[s.gender], date: new Date().toISOString() });
+      await saveData();
+      render();
+    };
+  });
+  el.querySelectorAll('.dash-remind-mess').forEach(btn=>{
+    btn.onclick = ()=>{
+      const s = data.students.find(x=>x.id===btn.dataset.id);
+      const message = `Hi ${s.name}, this is a reminder that your mess payment of ${fmtMoney(RATES[s.gender])} for ${monthLabel} is due. Please pay at your earliest convenience. Thank you!`;
+      sendReminder(s.name, s.phone, message);
+    };
+  });
+  el.querySelectorAll('.dash-pay-tiffin').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const entry = data.tiffinLog.find(t=>t.id===btn.dataset.id);
+      if(entry) entry.paid = true;
+      await saveData();
+      render();
+    };
+  });
+  el.querySelectorAll('.dash-remind-tiffin').forEach(btn=>{
+    btn.onclick = ()=>{
+      const entry = data.tiffinLog.find(t=>t.id===btn.dataset.id);
+      const message = `Hi ${entry.name}, just a reminder — you have a pending tiffin payment of ${fmtMoney(entry.amount)} (${entry.count} tiffin${entry.count>1?'s':''} on ${new Date(entry.date).toLocaleDateString('en-IN')}). Please settle when you can. Thanks!`;
+      sendReminder(entry.name, null, message);
+    };
+  });
+
+  drawDashboardCharts(pendingStudents.length, paidThisMonth.length);
+}
+
+function drawDashboardCharts(pendingCount, paidCount){
+  if(typeof Chart === 'undefined') return;
+
+  if(paymentStatusChart) paymentStatusChart.destroy();
+  const statusCtx = document.getElementById('paymentStatusChart');
+  if(statusCtx){
+    paymentStatusChart = new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Paid', 'Pending'],
+        datasets: [{
+          data: [paidCount, pendingCount],
+          backgroundColor: ['#4A7856', '#B24444'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, color: '#6b5f4d', padding: 12 } }
+        },
+        cutout: '62%'
+      }
+    });
+  }
+
+  if(revenueTrendChart) revenueTrendChart.destroy();
+  const trendCtx = document.getElementById('revenueTrendChart');
+  if(trendCtx){
+    const months = lastNMonths(6);
+    const messData = months.map(m => data.payments.filter(p=>p.month===m.key).reduce((s,p)=>s+p.amount,0));
+    const sweetsData = months.map(m => data.sweetSales.filter(s=>s.date.slice(0,7)===m.key).reduce((s,x)=>s+x.amount,0));
+    revenueTrendChart = new Chart(trendCtx, {
+      type: 'bar',
+      data: {
+        labels: months.map(m=>m.label),
+        datasets: [
+          { label: 'Mess', data: messData, backgroundColor: '#7C3131', borderRadius: 4 },
+          { label: 'Sweets/Namkeen', data: sweetsData, backgroundColor: '#C98A1A', borderRadius: 4 }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#6b5f4d', font: { size: 11 } } },
+          y: { ticks: { color: '#6b5f4d', font: { size: 10 } }, grid: { color: '#E5D9C0' } }
+        },
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, color: '#6b5f4d', padding: 12 } }
+        }
+      }
+    });
+  }
+}
+
+// ---------- STUDENTS ----------
+let studentSearch = '';
+function renderStudents(el){
+  const boys = data.students.filter(s=>s.gender==='Boy').length;
+  const girls = data.students.filter(s=>s.gender==='Girl').length;
+  const filtered = data.students.filter(s=>s.name.toLowerCase().includes(studentSearch.toLowerCase()));
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${data.students.length}</div><div class="l">Total students</div></div>
+      <div class="stat"><div class="n">${boys}</div><div class="l">Boys · ₹2500/mo</div></div>
+      <div class="stat"><div class="n">${girls}</div><div class="l">Girls · ₹2200/mo</div></div>
+    </div>
+    <div class="card">
+      <h2>Add a student</h2>
+      <div class="row">
+        <div><label>Name</label><input id="s-name" placeholder="Full name"></div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Gender / rate</label>
+          <select id="s-gender">
+            <option value="Boy">Boy — ₹2500/mo</option>
+            <option value="Girl">Girl — ₹2200/mo</option>
+          </select>
+        </div>
+        <div><label>Joining date</label><input id="s-join" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="row">
+        <div><label>Phone (optional)</label><input id="s-phone" placeholder="10-digit number"></div>
+        <div><label>Photo (optional)</label><input id="s-photo" type="file" accept="image/*"></div>
+      </div>
+      <button class="primary" id="add-student-btn">Add student</button>
+    </div>
+    <div class="card">
+      <h2>All students</h2>
+      <input id="student-search" placeholder="Search by name…" value="${studentSearch}" style="margin-bottom:10px;">
+      <div id="student-list">
+        ${filtered.length===0 ? `<div class="empty">${data.students.length===0?'No students yet — add your first one above.':'No students match your search.'}</div>` : filtered.map(s=>`
+          <div class="student-row">
+            <div class="row-with-avatar">
+              ${s.photo ? `<img class="avatar" src="${s.photo}">` : `<div class="avatar-placeholder">${s.name.charAt(0).toUpperCase()}</div>`}
+              <div>
+                <div class="student-name">${s.name}</div>
+                <div class="student-meta">${s.gender} · ${fmtMoney(RATES[s.gender])}/mo · joined ${new Date(s.joinDate).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}${s.phone?' · '+s.phone:''}</div>
+              </div>
+            </div>
+            <button class="del" data-id="${s.id}">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  el.querySelector('#student-search').oninput = (e)=>{ studentSearch = e.target.value; renderStudents(el); };
+  el.querySelector('#add-student-btn').onclick = async ()=>{
+    const name = el.querySelector('#s-name').value.trim();
+    const gender = el.querySelector('#s-gender').value;
+    const joinDate = el.querySelector('#s-join').value;
+    const phone = el.querySelector('#s-phone').value.trim();
+    const photoFile = el.querySelector('#s-photo').files[0];
+    if(!name){ alert('Please enter a name'); return; }
+    const newStudent = { id: uid(), name, gender, joinDate, phone, photo: null };
+    const finish = async ()=>{
+      data.students.push(newStudent);
+      await saveData();
+      render();
+    };
+    if(photoFile){
+      const reader = new FileReader();
+      reader.onload = async (e)=>{ newStudent.photo = e.target.result; await finish(); };
+      reader.readAsDataURL(photoFile);
+    } else {
+      await finish();
+    }
+  };
+  el.querySelectorAll('.del[data-id]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm('Remove this student? Their attendance and payment history will stay recorded.')) return;
+      const idx = data.students.findIndex(s=>s.id===btn.dataset.id);
+      const removed = data.students[idx];
+      data.students.splice(idx,1);
+      await saveData();
+      render();
+      showToast(removed.name + ' removed.', async ()=>{
+        data.students.splice(idx,0,removed);
+        await saveData();
+      });
+    };
+  });
+}
+
+// ---------- ATTENDANCE ----------
+function renderAttendance(el){
+  if(data.students.length===0){
+    el.innerHTML = '<div class="card"><div class="empty">Add students first, then mark their daily attendance here.</div></div>';
+    return;
+  }
+  if(!attSelectedStudent) attSelectedStudent = data.students[0].id;
+  const mk = monthKey(attMonth);
+  const year = attMonth.getFullYear(), month = attMonth.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const firstWeekday = new Date(year, month, 1).getDay();
+  const studentAtt = (data.attendance[attSelectedStudent] && data.attendance[attSelectedStudent][mk]) || [];
+  const presentCount = studentAtt.length;
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="student-picker">
+        ${data.students.map(s=>`<div class="chip ${s.id===attSelectedStudent?'sel':''}" data-id="${s.id}">${s.name}</div>`).join('')}
+      </div>
+      <div class="month-nav">
+        <button id="prev-m">‹</button>
+        <div class="m-label">${attMonth.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</div>
+        <button id="next-m">›</button>
+      </div>
+      <div class="att-grid">
+        ${['S','M','T','W','T','F','S'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--ink-soft);font-weight:700;">${d}</div>`).join('')}
+        ${Array(firstWeekday).fill(0).map(()=>'<div class="att-day blank"></div>').join('')}
+        ${Array(daysInMonth).fill(0).map((_,i)=>{
+          const day = i+1;
+          const isPresent = studentAtt.includes(day);
+          return `<div class="att-day ${isPresent?'present':''}" data-day="${day}">${day}</div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:12px;font-size:12.5px;color:var(--ink-soft);text-align:center;">
+        ${presentCount} day${presentCount===1?'':'s'} marked present this month
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('.chip[data-id]').forEach(c=>{
+    c.onclick = ()=>{ attSelectedStudent = c.dataset.id; render(); };
+  });
+  el.querySelector('#prev-m').onclick = ()=>{ attMonth = new Date(year, month-1, 1); render(); };
+  el.querySelector('#next-m').onclick = ()=>{ attMonth = new Date(year, month+1, 1); render(); };
+  el.querySelectorAll('.att-day[data-day]').forEach(d=>{
+    d.onclick = async ()=>{
+      const day = parseInt(d.dataset.day);
+      if(!data.attendance[attSelectedStudent]) data.attendance[attSelectedStudent] = {};
+      if(!data.attendance[attSelectedStudent][mk]) data.attendance[attSelectedStudent][mk] = [];
+      const arr = data.attendance[attSelectedStudent][mk];
+      const idx = arr.indexOf(day);
+      if(idx>-1) arr.splice(idx,1); else arr.push(day);
+      await saveData();
+      render();
+    };
+  });
+}
+
+// ---------- PAYMENTS ----------
+function renderPayments(el){
+  if(data.students.length===0){
+    el.innerHTML = '<div class="card"><div class="empty">Add students first to track their monthly payments.</div></div>';
+    return;
+  }
+  const mk = monthKey(attMonth);
+  const isCurrentMonth = mk === monthKey(new Date());
+  const overdue = isCurrentMonth && isOverdueNow();
+  const paidThisMonth = data.payments.filter(p=>p.month===mk);
+  const totalCollected = paidThisMonth.reduce((sum,p)=>sum+p.amount,0);
+  const pendingCount = data.students.length - paidThisMonth.length;
+  selectedPendingIds.forEach(id=>{ if(paidThisMonth.find(p=>p.studentId===id)) selectedPendingIds.delete(id); });
+
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(totalCollected)}</div><div class="l">Collected this month</div></div>
+      <div class="stat"><div class="n">${pendingCount}</div><div class="l">Pending this month</div></div>
+    </div>
+    <div class="card">
+      <div class="month-nav">
+        <button id="prev-mp">‹</button>
+        <div class="m-label">${attMonth.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</div>
+        <button id="next-mp">›</button>
+      </div>
+      ${data.students.map(s=>{
+        const payment = paidThisMonth.find(p=>p.studentId===s.id);
+        const rate = RATES[s.gender];
+        return `
+          <div class="student-row">
+            <div class="row-with-avatar">
+              ${!payment ? `<input type="checkbox" class="check pending-check" data-id="${s.id}" ${selectedPendingIds.has(s.id)?'checked':''}>` : ''}
+              ${s.photo ? `<img class="avatar" src="${s.photo}">` : `<div class="avatar-placeholder">${s.name.charAt(0).toUpperCase()}</div>`}
+              <div>
+                <div class="student-name">${s.name}</div>
+                <div class="student-meta">${fmtMoney(rate)}/mo${payment?' · paid '+new Date(payment.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}):''}</div>
+              </div>
+            </div>
+            ${payment
+              ? `<div style="display:flex;gap:6px;align-items:center;"><span class="badge paid">PAID</span><button class="ghost receipt-btn" data-id="${s.id}">Receipt</button></div>`
+              : `<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                  ${overdue?'<span class="badge due">OVERDUE</span>':''}
+                  <div style="display:flex;gap:6px;">
+                    <button class="ghost remind-btn" data-id="${s.id}" data-rate="${rate}">Remind</button>
+                    <button class="ghost mark-paid" data-id="${s.id}" data-rate="${rate}">Mark paid</button>
+                  </div>
+                 </div>`
+            }
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ${selectedPendingIds.size>0 ? `<button class="primary" id="bulk-pay-btn" style="margin-bottom:10px;">Mark ${selectedPendingIds.size} selected as paid</button>` : ''}
+    <button class="ghost" id="export-payments-btn" style="width:100%;">Export this month's summary (CSV)</button>
+  `;
+  el.querySelector('#prev-mp').onclick = ()=>{ attMonth = new Date(attMonth.getFullYear(), attMonth.getMonth()-1, 1); render(); };
+  el.querySelector('#next-mp').onclick = ()=>{ attMonth = new Date(attMonth.getFullYear(), attMonth.getMonth()+1, 1); render(); };
+  el.querySelectorAll('.pending-check').forEach(chk=>{
+    chk.onchange = ()=>{
+      if(chk.checked) selectedPendingIds.add(chk.dataset.id); else selectedPendingIds.delete(chk.dataset.id);
+      render();
+    };
+  });
+  const bulkBtn = el.querySelector('#bulk-pay-btn');
+  if(bulkBtn){
+    bulkBtn.onclick = async ()=>{
+      selectedPendingIds.forEach(id=>{
+        const s = data.students.find(x=>x.id===id);
+        if(s) data.payments.push({ id: uid(), studentId: id, month: mk, amount: RATES[s.gender], date: new Date().toISOString() });
+      });
+      selectedPendingIds.clear();
+      await saveData();
+      render();
+    };
+  }
+  el.querySelectorAll('.mark-paid').forEach(btn=>{
+    btn.onclick = async ()=>{
+      data.payments.push({
+        id: uid(),
+        studentId: btn.dataset.id,
+        month: mk,
+        amount: parseInt(btn.dataset.rate),
+        date: new Date().toISOString()
+      });
+      await saveData();
+      render();
+    };
+  });
+  el.querySelectorAll('.remind-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const s = data.students.find(x=>x.id===btn.dataset.id);
+      const rate = btn.dataset.rate;
+      const monthName = attMonth.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      const message = `Hi ${s.name}, this is a reminder that your mess payment of ${fmtMoney(parseInt(rate))} for ${monthName} is due. Please pay at your earliest convenience. Thank you!`;
+      sendReminder(s.name, s.phone, message);
+    };
+  });
+  el.querySelectorAll('.receipt-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const s = data.students.find(x=>x.id===btn.dataset.id);
+      const payment = paidThisMonth.find(p=>p.studentId===s.id);
+      const monthName = attMonth.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      const message = `Samartha Mess — Payment Receipt\nName: ${s.name}\nMonth: ${monthName}\nAmount: ${fmtMoney(payment.amount)}\nPaid on: ${new Date(payment.date).toLocaleDateString('en-IN')}\nThank you!`;
+      sendReminder(s.name, s.phone, message);
+    };
+  });
+  el.querySelector('#export-payments-btn').onclick = ()=>{
+    const rows = data.students.map(s=>{
+      const payment = paidThisMonth.find(p=>p.studentId===s.id);
+      const rate = RATES[s.gender];
+      return [s.name, s.gender, rate, payment?'Paid':'Pending', payment?new Date(payment.date).toLocaleDateString('en-IN'):''];
+    });
+    downloadCSV(`payments-${mk}.csv`, ['Name','Gender','Rate','Status','Paid Date'], rows);
+  };
+}
+
+// ---------- TIFFIN LOG (irregular friends) ----------
+function renderTiffin(el){
+  const todayLogs = data.tiffinLog.slice().reverse();
+  const totalUnpaid = data.tiffinLog.filter(t=>!t.paid).reduce((s,t)=>s+t.amount,0);
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(totalUnpaid)}</div><div class="l">Unpaid tiffin dues</div></div>
+      <div class="stat"><div class="n">₹${TIFFIN_RATE}</div><div class="l">Rate per tiffin</div></div>
+    </div>
+    <div class="card">
+      <h2>Log a tiffin (irregular / one-off eaters)</h2>
+      <div class="row">
+        <div><label>Name</label><input id="t-name" placeholder="Who ate"></div>
+        <div><label>Tiffins</label><input id="t-count" type="number" min="1" value="1"></div>
+      </div>
+      <div class="row">
+        <div><label>Date</label><input id="t-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <button class="primary" id="add-tiffin-btn">Log entry</button>
+    </div>
+    <div class="card">
+      <h2>Recent entries</h2>
+      ${todayLogs.length===0 ? '<div class="empty">No tiffin entries yet.</div>' : todayLogs.map(t=>`
+        <div class="tiffin-entry">
+          <div>
+            <div style="font-weight:600;">${t.name}</div>
+            <div style="font-size:11px;color:var(--ink-soft);">${t.count} tiffin${t.count>1?'s':''} · ${new Date(t.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="amt">${fmtMoney(t.amount)}</span>
+            ${t.paid ? '<span class="badge paid">PAID</span>' : `
+              <button class="ghost remind-tiffin" data-id="${t.id}">Remind</button>
+              <button class="ghost pay-tiffin" data-id="${t.id}">Mark paid</button>
+            `}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="ghost" id="export-tiffin-btn" style="width:100%;">Export all entries (CSV)</button>
+  `;
+  el.querySelector('#add-tiffin-btn').onclick = async ()=>{
+    const name = el.querySelector('#t-name').value.trim();
+    const count = parseInt(el.querySelector('#t-count').value) || 1;
+    const dateVal = el.querySelector('#t-date').value;
+    if(!name){ alert('Please enter a name'); return; }
+    data.tiffinLog.push({
+      id: uid(), name, count, amount: count*TIFFIN_RATE,
+      date: dateVal, paid: false
+    });
+    await saveData();
+    render();
+  };
+  el.querySelectorAll('.pay-tiffin').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const entry = data.tiffinLog.find(t=>t.id===btn.dataset.id);
+      if(entry) entry.paid = true;
+      await saveData();
+      render();
+    };
+  });
+  el.querySelectorAll('.remind-tiffin').forEach(btn=>{
+    btn.onclick = ()=>{
+      const entry = data.tiffinLog.find(t=>t.id===btn.dataset.id);
+      if(!entry) return;
+      const message = `Hi ${entry.name}, just a reminder — you have a pending tiffin payment of ${fmtMoney(entry.amount)} (${entry.count} tiffin${entry.count>1?'s':''} on ${new Date(entry.date).toLocaleDateString('en-IN')}). Please settle when you can. Thanks!`;
+      sendReminder(entry.name, null, message);
+    };
+  });
+  el.querySelector('#export-tiffin-btn').onclick = ()=>{
+    const rows = data.tiffinLog.map(t=>[t.name, t.count, t.amount, new Date(t.date).toLocaleDateString('en-IN'), t.paid?'Paid':'Pending']);
+    downloadCSV(`tiffin-log.csv`, ['Name','Tiffins','Amount','Date','Status'], rows);
+  };
+}
+
+// ---------- SWEETS & NAMKEEN ----------
+function renderSweets(el){
+  const mk = monthKey(sweetMonth);
+  const salesThisMonth = data.sweetSales.filter(s=>s.date.slice(0,7)===mk);
+  const totalRevenue = salesThisMonth.reduce((sum,s)=>sum+s.amount,0);
+  const recentSales = data.sweetSales.slice().reverse().slice(0,20);
+  const recentProduction = data.production.slice().reverse().slice(0,10);
+
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(totalRevenue)}</div><div class="l">Revenue this month</div></div>
+      <div class="stat"><div class="n">${salesThisMonth.length}</div><div class="l">Sales logged</div></div>
+    </div>
+    <div class="card">
+      <h2>Stock on hand</h2>
+      ${data.products.map(p=>{
+        const st = stockFor(p.id);
+        const threshold = data.settings.lowStock[p.id] || 500;
+        const isLow = st.remainingG <= threshold;
+        return `
+          <div class="student-row">
+            <div>
+              <div class="student-name">${p.name}</div>
+              <div class="student-meta">Made ${fmtG(st.producedG)} · Sold ${fmtG(st.soldG)}</div>
+            </div>
+            <span class="badge ${st.remainingG<=0?'due':(isLow?'low':'paid')}">${fmtG(Math.max(st.remainingG,0))} left${isLow&&st.remainingG>0?' · LOW':''}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div class="card">
+      <h2>Log production (batch made)</h2>
+      <div class="row">
+        <div>
+          <label>Product</label>
+          <select id="pr-product">
+            ${data.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Quantity made (kg)</label><input id="pr-qty" type="number" min="0.1" step="0.1" value="1"></div>
+      </div>
+      <div class="row">
+        <div><label>Date</label><input id="pr-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <button class="primary" id="add-production-btn">Log batch</button>
+      ${recentProduction.length ? `
+        <div style="margin-top:10px;">
+          ${recentProduction.map(p=>{
+            const product = data.products.find(x=>x.id===p.productId);
+            return `<div class="tiffin-entry"><div style="font-size:12.5px;">${product?product.name:'Unknown'} · ${p.qtyKg}kg</div><div style="font-size:11px;color:var(--ink-soft);">${new Date(p.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div></div>`;
+          }).join('')}
+        </div>
+      ` : ''}
+    </div>
+    <div class="card">
+      <h2>Packet prices</h2>
+      ${data.products.map(p=>`
+        <div style="margin-bottom:10px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">${p.name} <span style="font-weight:400;color:var(--ink-soft);font-size:11.5px;">(${p.category})</span></div>
+          <div class="row">
+            ${p.packets.map((pk,i)=>`
+              <div>
+                <label>${pk.size}</label>
+                <input type="number" min="0" class="packet-price" data-pid="${p.id}" data-idx="${i}" value="${pk.price}">
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+      <button class="ghost" id="save-rates-btn" style="width:100%;">Save prices</button>
+    </div>
+    <div class="card">
+      <h2>Log a sale</h2>
+      <div class="row">
+        <div style="flex:2;">
+          <label>Item</label>
+          <select id="sw-item">
+            ${data.products.map(p=>`<optgroup label="${p.name}">
+              ${p.packets.map((pk,i)=>`<option value="${p.id}::${i}">${pk.size} — ${fmtMoney(pk.price)}</option>`).join('')}
+            </optgroup>`).join('')}
+          </select>
+        </div>
+        <div><label>Packets sold</label><input id="sw-qty" type="number" min="1" step="1" value="1"></div>
+      </div>
+      <div class="row">
+        <div><label>Buyer / note (optional)</label><input id="sw-buyer" placeholder="Walk-in, shop name, etc."></div>
+        <div><label>Date</label><input id="sw-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <button class="primary" id="add-sale-btn">Log sale</button>
+    </div>
+    <div class="card">
+      <h2>Recent sales</h2>
+      ${recentSales.length===0 ? '<div class="empty">No sales logged yet.</div>' : recentSales.map(s=>{
+        const product = data.products.find(p=>p.id===s.productId);
+        return `
+          <div class="tiffin-entry">
+            <div>
+              <div style="font-weight:600;">${product?product.name:'Unknown'} · ${s.packetSize}</div>
+              <div style="font-size:11px;color:var(--ink-soft);">${s.qty} packet${s.qty>1?'s':''}${s.buyer?' · '+s.buyer:''} · ${new Date(s.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+            </div>
+            <span class="amt">${fmtMoney(s.amount)}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <button class="ghost" id="export-sweets-btn" style="width:100%;">Export all sales (CSV)</button>
+  `;
+
+  el.querySelector('#add-production-btn').onclick = async ()=>{
+    const productId = el.querySelector('#pr-product').value;
+    const qtyKg = parseFloat(el.querySelector('#pr-qty').value) || 0;
+    const dateVal = el.querySelector('#pr-date').value;
+    if(qtyKg<=0){ alert('Please enter a valid quantity'); return; }
+    data.production.push({ id: uid(), productId, qtyKg, date: dateVal });
+    await saveData();
+    render();
+  };
+
+  el.querySelector('#save-rates-btn').onclick = async ()=>{
+    el.querySelectorAll('.packet-price').forEach(inp=>{
+      const product = data.products.find(p=>p.id===inp.dataset.pid);
+      if(product) product.packets[parseInt(inp.dataset.idx)].price = parseFloat(inp.value) || 0;
+    });
+    await saveData();
+    render();
+  };
+
+  el.querySelector('#add-sale-btn').onclick = async ()=>{
+    const [productId, idx] = el.querySelector('#sw-item').value.split('::');
+    const qty = parseInt(el.querySelector('#sw-qty').value) || 0;
+    const buyer = el.querySelector('#sw-buyer').value.trim();
+    const dateVal = el.querySelector('#sw-date').value;
+    const product = data.products.find(p=>p.id===productId);
+    const packet = product ? product.packets[parseInt(idx)] : null;
+    if(!packet || qty<=0){ alert('Please enter a valid number of packets'); return; }
+    data.sweetSales.push({
+      id: uid(), productId, packetSize: packet.size, qty,
+      amount: Math.round(packet.price * qty),
+      buyer, date: dateVal
+    });
+    await saveData();
+    render();
+  };
+
+  el.querySelector('#export-sweets-btn').onclick = ()=>{
+    const rows = data.sweetSales.map(s=>{
+      const product = data.products.find(p=>p.id===s.productId);
+      return [product?product.name:'Unknown', s.packetSize, s.qty, s.amount, s.buyer||'', new Date(s.date).toLocaleDateString('en-IN')];
+    });
+    downloadCSV('sweets-namkeen-sales.csv', ['Product','Packet Size','Packets Sold','Amount','Buyer','Date'], rows);
+  };
+}
+
+// ---------- EXPENSES ----------
+function renderExpenses(el){
+  const mk = monthKey(new Date());
+  const thisMonth = data.expenses.filter(e=>e.date.slice(0,7)===mk);
+  const totalThisMonth = thisMonth.reduce((s,e)=>s+e.amount,0);
+  const recent = data.expenses.slice().reverse().slice(0,25);
+  const CATEGORIES = ['Ingredients','Gas','Labor','Rent','Packaging','Other'];
+
+  el.innerHTML = `
+    <div class="summary-strip">
+      <div class="stat"><div class="n">${fmtMoney(totalThisMonth)}</div><div class="l">Expenses this month</div></div>
+      <div class="stat"><div class="n">${thisMonth.length}</div><div class="l">Entries logged</div></div>
+    </div>
+    <div class="card">
+      <h2>Log an expense</h2>
+      <div class="row">
+        <div>
+          <label>Category</label>
+          <select id="ex-cat">${CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+        </div>
+        <div><label>Amount</label><input id="ex-amt" type="number" min="1" placeholder="₹"></div>
+      </div>
+      <div class="row">
+        <div><label>Note (optional)</label><input id="ex-note" placeholder="e.g. vegetables from market"></div>
+        <div><label>Date</label><input id="ex-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <button class="primary" id="add-expense-btn">Log expense</button>
+    </div>
+    <div class="card">
+      <h2>Recent expenses</h2>
+      ${recent.length===0 ? '<div class="empty">No expenses logged yet.</div>' : recent.map(e=>`
+        <div class="tiffin-entry">
+          <div>
+            <div style="font-weight:600;">${e.category}${e.note?' · '+e.note:''}</div>
+            <div style="font-size:11px;color:var(--ink-soft);">${new Date(e.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="amt">${fmtMoney(e.amount)}</span>
+            <button class="del" data-id="${e.id}">Remove</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="ghost" id="export-expenses-btn" style="width:100%;">Export all expenses (CSV)</button>
+  `;
+
+  el.querySelector('#add-expense-btn').onclick = async ()=>{
+    const category = el.querySelector('#ex-cat').value;
+    const amount = parseFloat(el.querySelector('#ex-amt').value) || 0;
+    const note = el.querySelector('#ex-note').value.trim();
+    const dateVal = el.querySelector('#ex-date').value;
+    if(amount<=0){ alert('Please enter a valid amount'); return; }
+    data.expenses.push({ id: uid(), category, amount, note, date: dateVal });
+    await saveData();
+    render();
+  };
+  el.querySelectorAll('.del[data-id]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const idx = data.expenses.findIndex(e=>e.id===btn.dataset.id);
+      const removed = data.expenses[idx];
+      data.expenses.splice(idx,1);
+      await saveData();
+      render();
+      showToast('Expense removed.', async ()=>{
+        data.expenses.splice(idx,0,removed);
+        await saveData();
+      });
+    };
+  });
+  el.querySelector('#export-expenses-btn').onclick = ()=>{
+    const rows = data.expenses.map(e=>[e.category, e.amount, e.note||'', new Date(e.date).toLocaleDateString('en-IN')]);
+    downloadCSV('expenses.csv', ['Category','Amount','Note','Date'], rows);
+  };
+}
+
+// ---------- SETTINGS ----------
+function renderSettings(el){
+  el.innerHTML = `
+    <div class="card">
+      <h2>Backup &amp; restore</h2>
+      <div class="student-meta" style="margin-bottom:10px;">Save a copy of everything — students, payments, sales, expenses — as a file you can keep safe or move to another device.</div>
+      <button class="ghost" id="export-backup-btn" style="width:100%;margin-bottom:8px;">Export full backup (JSON)</button>
+      <label>Restore from a backup file</label>
+      <input type="file" id="import-backup-input" accept="application/json">
+    </div>
+
+    <div class="card">
+      <h2>Payment due date</h2>
+      <div class="student-meta" style="margin-bottom:10px;">Students unpaid after this day of the month show as overdue on the Dashboard.</div>
+      <div class="row">
+        <div><label>Due day of month</label><input id="due-day-input" type="number" min="1" max="28" value="${data.settings.dueDay}"></div>
+      </div>
+      <button class="ghost" id="save-due-day-btn" style="width:100%;">Save</button>
+    </div>
+
+    <div class="card">
+      <h2>Low-stock alerts</h2>
+      <div class="student-meta" style="margin-bottom:10px;">Get a warning on the Dashboard when stock drops below this amount.</div>
+      ${data.products.map(p=>`
+        <div class="row">
+          <div><label>${p.name} (grams)</label><input type="number" min="0" class="low-stock-input" data-id="${p.id}" value="${data.settings.lowStock[p.id]||500}"></div>
+        </div>
+      `).join('')}
+      <button class="ghost" id="save-lowstock-btn" style="width:100%;">Save thresholds</button>
+    </div>
+
+    <div class="card">
+      <h2>Add a new product</h2>
+      <div class="row">
+        <div><label>Product name</label><input id="np-name" placeholder="e.g. Motichoor Ladoo"></div>
+        <div>
+          <label>Category</label>
+          <select id="np-category"><option value="Sweet">Sweet</option><option value="Namkeen">Namkeen</option></select>
+        </div>
+      </div>
+      <div class="student-meta" style="margin:6px 0;">Add up to 4 packet sizes with prices (leave blank to skip)</div>
+      <div class="row">
+        <div><input id="np-size1" placeholder="Size e.g. 250g"></div>
+        <div><input id="np-price1" type="number" min="0" placeholder="Price ₹"></div>
+      </div>
+      <div class="row">
+        <div><input id="np-size2" placeholder="Size e.g. 500g"></div>
+        <div><input id="np-price2" type="number" min="0" placeholder="Price ₹"></div>
+      </div>
+      <div class="row">
+        <div><input id="np-size3" placeholder="Size e.g. 1kg"></div>
+        <div><input id="np-price3" type="number" min="0" placeholder="Price ₹"></div>
+      </div>
+      <button class="primary" id="add-product-btn">Add product</button>
+    </div>
+
+    <div class="card">
+      <h2>Appearance</h2>
+      <div class="toggle-row">
+        <span>Dark mode</span>
+        <label class="switch"><input type="checkbox" id="dark-toggle" ${data.settings.darkMode?'checked':''}><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>App lock (PIN)</h2>
+      <div class="student-meta" style="margin-bottom:10px;">${data.settings.pin ? 'A PIN is currently set.' : 'No PIN set — anyone opening this file can see your data.'}</div>
+      <div class="row">
+        <div><label>4-digit PIN</label><input id="pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="primary" id="set-pin-btn" style="flex:1;">${data.settings.pin?'Change PIN':'Set PIN'}</button>
+        ${data.settings.pin ? '<button class="ghost" id="remove-pin-btn" style="flex:1;">Remove PIN</button>' : ''}
+      </div>
+    </div>
+  `;
+
+  el.querySelector('#export-backup-btn').onclick = exportBackup;
+  el.querySelector('#import-backup-input').onchange = (e)=>{
+    if(e.target.files[0]) importBackup(e.target.files[0]);
+  };
+  el.querySelector('#save-due-day-btn').onclick = async ()=>{
+    data.settings.dueDay = parseInt(el.querySelector('#due-day-input').value) || 5;
+    await saveData();
+    showToast('Due date saved.');
+  };
+  el.querySelector('#save-lowstock-btn').onclick = async ()=>{
+    el.querySelectorAll('.low-stock-input').forEach(inp=>{
+      data.settings.lowStock[inp.dataset.id] = parseFloat(inp.value) || 0;
+    });
+    await saveData();
+    showToast('Low-stock thresholds saved.');
+  };
+  el.querySelector('#add-product-btn').onclick = async ()=>{
+    const name = el.querySelector('#np-name').value.trim();
+    const category = el.querySelector('#np-category').value;
+    if(!name){ alert('Please enter a product name'); return; }
+    const packets = [];
+    for(let i=1;i<=3;i++){
+      const size = el.querySelector('#np-size'+i).value.trim();
+      const price = parseFloat(el.querySelector('#np-price'+i).value);
+      if(size && price>0) packets.push({size, price});
+    }
+    if(packets.length===0){ alert('Please add at least one packet size and price'); return; }
+    data.products.push({ id: uid(), name, category, packets });
+    await saveData();
+    render();
+    showToast(name + ' added to your product list.');
+  };
+  el.querySelector('#dark-toggle').onchange = async (e)=>{
+    data.settings.darkMode = e.target.checked;
+    applyTheme();
+    await saveData();
+  };
+  el.querySelector('#set-pin-btn').onclick = async ()=>{
+    const val = el.querySelector('#pin-input').value;
+    if(!/^\d{4}$/.test(val)){ alert('PIN must be exactly 4 digits'); return; }
+    data.settings.pin = val;
+    await saveData();
+    showToast('PIN saved. It will be asked next time you open this app.');
+    el.querySelector('#pin-input').value = '';
+  };
+  const removeBtn = el.querySelector('#remove-pin-btn');
+  if(removeBtn){
+    removeBtn.onclick = async ()=>{
+      if(!confirm('Remove the PIN lock?')) return;
+      data.settings.pin = null;
+      await saveData();
+      render();
+    };
+  }
+}
+
+loadData();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW registration failed', e));
+  });
+}
+</script>
+</body>
+</html>
