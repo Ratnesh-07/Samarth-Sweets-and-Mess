@@ -310,12 +310,13 @@
   input:checked + .slider{ background: var(--maroon); }
   input:checked + .slider:before{ transform: translateX(18px); }
   .badge.low{ background:#fbe9d3; color: var(--turmeric); }
+  .diag{ font-size:11px; color:var(--ink-soft); margin-top:14px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app" id="app">
-  <div class="loading">Loading your register…</div>
+  <div class="loading">Loading your register&hellip;</div>
 </div>
 
 <script>
@@ -329,7 +330,7 @@
   appId: "1:493558387228:web:f034e4610382c0b95145d9",
   measurementId: "G-CVY987TY6S"
 };
- 
+
 // ================================================================
 
 const STORAGE_KEY = 'mess-data-v1';
@@ -360,6 +361,8 @@ let revenueTrendChart = null;
 let selectedPendingIds = new Set();
 let unlocked = false;
 let pinEntryValue = '';
+let connectTimeoutId = null;
+let gotFirstResponse = false;
 
 function lastNMonths(n){
   const out = [];
@@ -389,6 +392,25 @@ function normalizeData(raw){
   return d;
 }
 
+function renderConnectionTrouble(){
+  document.getElementById('app').innerHTML = `
+    <div style="max-width:460px;margin:50px auto;padding:0 16px;">
+      <div class="card">
+        <h2>Taking longer than usual&hellip;</h2>
+        <div class="student-meta">The app has been waiting more than 12 seconds for a response from the shared database and hasn't heard back — no data, but also no error. This almost always means something on this network is silently blocking the connection to Google's servers, rather than a problem with your data or account.</div>
+        <div class="diag">
+          <strong>Things to try, in order:</strong><br>
+          1. Try this same link on mobile data instead of Wi-Fi.<br>
+          2. Try a different Wi-Fi network if you have one.<br>
+          3. Check if a VPN, firewall, or antivirus on this device might be blocking <code>firestore.googleapis.com</code>.<br>
+          4. Reload this page — sometimes the very first connection is slow.
+        </div>
+        <button class="primary" style="margin-top:14px;" onclick="location.reload()">Reload</button>
+      </div>
+    </div>
+  `;
+}
+
 function loadData(){
   if(FIREBASE_CONFIG.apiKey === 'PASTE_API_KEY_HERE'){
     document.getElementById('app').innerHTML = '<div style="max-width:420px;margin:60px auto;padding:0 16px;"><div class="card"><h2>Setup needed</h2><div class="student-meta">This app needs your Firebase details before it can run. Open SETUP.md in this project for step-by-step instructions, then paste your config into index.html where it says FIREBASE_CONFIG.</div></div></div>';
@@ -401,7 +423,17 @@ function loadData(){
     document.getElementById('app').innerHTML = '<div class="card"><div class="empty">Firebase could not start. Double-check the config values in index.html.</div></div>';
     return;
   }
+
+  // If we never hear back — success or error — within 12s, something on the
+  // network is silently blocking the connection. Show a helpful message
+  // instead of spinning forever.
+  connectTimeoutId = setTimeout(()=>{
+    if(!gotFirstResponse) renderConnectionTrouble();
+  }, 12000);
+
   db.collection('messShared').doc('main').onSnapshot((snap)=>{
+    gotFirstResponse = true;
+    if(connectTimeoutId) clearTimeout(connectTimeoutId);
     if(snap.exists && snap.data().json){
       try{ data = normalizeData(JSON.parse(snap.data().json)); }catch(e){ data = normalizeData(data); }
     } else {
@@ -414,6 +446,8 @@ function loadData(){
       render();
     }
   }, (err)=>{
+    gotFirstResponse = true;
+    if(connectTimeoutId) clearTimeout(connectTimeoutId);
     console.error('Firestore error', err);
     document.getElementById('app').innerHTML = '<div class="card"><div class="empty">Could not connect to the shared database. Check your internet connection and that Firestore rules allow access (see SETUP.md).</div></div>';
   });
