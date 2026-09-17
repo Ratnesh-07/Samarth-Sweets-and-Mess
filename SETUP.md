@@ -1,130 +1,53 @@
-# Setting up Samartha Sweets & Mess ERP as a shared, installable app
+# Samartha Sweets & Mess ERP — Setup
 
-This turns your app into a real website that every family member can open,
-install on their phone's home screen, and see the same live data on —
-updates from one phone appear on everyone else's within a second or two.
+This is a fresh, complete copy of your app. All functionality is included and
+unchanged: Dashboard with charts, Students, Attendance, Payments, Tiffin Log,
+Sweets & Namkeen (production + sales + stock), Expenses, and Settings
+(backup/restore, due date, low-stock thresholds, add product, dark mode, PIN
+lock). Your Firebase config is already filled in — you do **not** need to
+touch SETUP.md's old placeholder steps.
 
-It takes about 15–20 minutes the first time. You only do this once.
+**One change from before:** if the app ever can't reach the shared database
+within 12 seconds, it now shows a clear troubleshooting message instead of
+spinning on "Loading your register…" forever. This won't fix a network block
+by itself, but it tells you (and anyone helping you) what's actually
+happening instead of nothing.
 
----
+## Files in this bundle
+- `index.html` — the whole app
+- `manifest.json` — makes it installable as a home-screen app
+- `sw.js` — lets it still open with a weak signal
+- `icons/icon-192.png`, `icons/icon-512.png` — your Samarth Sweets logo, sized for app icons
 
-## Part 1 — Create the free live database (Firebase)
+## How to replace what's on GitHub
 
-1. Go to **https://console.firebase.google.com** and sign in with any Google account.
-2. Click **"Add project"** (or "Create a project"). Name it anything, e.g. `samartha-erp`.
-3. You can turn OFF Google Analytics for this project — not needed. Click **Create project**, then **Continue** once it's ready.
-4. In the left sidebar, click **Build → Firestore Database**.
-5. Click **Create database**.
-   - Choose **Start in test mode** (we'll tighten this in Part 2).
-   - Pick the location closest to you (any Asia region is fine) → **Enable**.
-6. Now click the **gear icon (⚙️) → Project settings** (top-left, next to "Project Overview").
-7. Scroll down to **"Your apps"**. Click the **`</>`** (web) icon to add a web app.
-8. Give it a nickname (e.g. "erp-web") → **Register app**. Do NOT check "Firebase Hosting."
-9. You'll now see a code block that looks like this:
+1. Go to your repo: `github.com/Ratnesh-07/Samarth-Sweets-and-Mess`
+2. Click on `index.html` in the file list → click the **pencil (edit)** icon
+3. Select all the existing content and delete it
+4. Paste in the new `index.html` from this bundle
+5. Scroll down, click **Commit changes**
+6. Repeat the same steps for `manifest.json` and `sw.js`
+7. For the icons: open `icons/icon-192.png` in your repo → there should be an
+   option to upload a new version, or delete the old one and use
+   **Add file → Upload files** to upload the new `icon-192.png` and
+   `icon-512.png` from this bundle's `icons` folder (make sure they land
+   inside the `icons/` folder in your repo, not the root)
 
-   ```js
-   const firebaseConfig = {
-     apiKey: "AIzaSy...",
-     authDomain: "samartha-erp.firebaseapp.com",
-     projectId: "samartha-erp",
-     storageBucket: "samartha-erp.appspot.com",
-     messagingSenderId: "123456789",
-     appId: "1:123456789:web:abcdef123456"
-   };
-   ```
+GitHub Pages will redeploy automatically within a minute or two of your last
+commit. Then reload `ratnesh-07.github.io/Samarth-Sweets-and-Mess/`.
 
-   **Copy these 6 values.**
+## If it still gets stuck loading
 
-10. Open **`index.html`** from this folder in any text editor (even Notepad).
-    Find this section near the top of the `<script>` block:
+The new timeout message will now tell you plainly if this happens again. Based
+on everything checked so far — your Firebase config is correct, your Firestore
+rule is valid until October 2026, and Anonymous auth isn't even used by this
+code — the most likely remaining cause is a **network-level block** on this
+device or network reaching Google's Firestore servers (a router filter,
+antivirus, or ISP-level restriction). To confirm:
 
-    ```js
-    const FIREBASE_CONFIG = {
-      apiKey: "PASTE_API_KEY_HERE",
-      authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-      projectId: "PASTE_PROJECT_ID",
-      storageBucket: "PASTE_PROJECT_ID.appspot.com",
-      messagingSenderId: "PASTE_SENDER_ID",
-      appId: "PASTE_APP_ID"
-    };
-    ```
+- Open the site on **mobile data** instead of Wi-Fi and see if it loads.
+- Try a different Wi-Fi network if one is available.
+- Check if any VPN, firewall, or antivirus software is active on this device.
 
-    Replace each `PASTE_...` value with what you copied in step 9. Save the file.
-
----
-
-## Part 2 — Lock down the database (important — do this)
-
-By default "test mode" lets **anyone on the internet** read/write your data for 30 days,
-then it stops working entirely. Fix both problems at once:
-
-1. In Firebase Console → **Firestore Database → Rules** tab.
-2. Replace the contents with:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /messShared/{doc} {
-         allow read, write: if true;
-       }
-     }
-   }
-   ```
-
-   This keeps it simple (no login system) but only works because your app already
-   has its own PIN lock (set one in the app's **Settings** tab!). Anyone with your
-   website link *and* your Firestore project ID could technically still reach the
-   database directly — for a family mess/sweets business this level of risk is
-   normally fine, but don't share the link publicly.
-
-3. Click **Publish**.
-
----
-
-## Part 3 — Put it on the internet (GitHub Pages)
-
-1. Go to **https://github.com** and log in (you said you already have an account).
-2. Click the **+** icon (top-right) → **New repository**.
-3. Name it e.g. `samartha-erp` → set it to **Public** → **Create repository**.
-4. On the new repo page, click **"uploading an existing file"** (or Add file → Upload files).
-5. Drag in **all the files from this folder**: `index.html`, `manifest.json`, `sw.js`,
-   and the whole `icons` folder (with both PNGs inside).
-6. Scroll down, click **Commit changes**.
-7. Go to the repo's **Settings** tab → **Pages** (left sidebar).
-8. Under "Build and deployment" → Source: **Deploy from a branch**.
-   Branch: **main**, folder: **/ (root)** → **Save**.
-9. Wait 1–2 minutes, then refresh — GitHub will show your live link, like:
-   `https://yourusername.github.io/samartha-erp/`
-
-That link is your app. Anyone with it can open it in a phone browser.
-
----
-
-## Part 4 — Install it on each family member's phone
-
-**On Android (Chrome):**
-1. Open the link above in Chrome.
-2. Tap the **⋮** menu → **"Add to Home screen"** → **Install**.
-3. The app icon (your logo) now appears on the home screen like a normal app.
-
-**On iPhone (Safari):**
-1. Open the link in Safari (must be Safari, not Chrome, for this to work).
-2. Tap the **Share** icon (square with an arrow) → **"Add to Home Screen"** → **Add**.
-
-Do this on every family member's phone using the same link. Everyone now sees
-the same live data — mark a payment on one phone, it appears on all the others
-within a couple of seconds.
-
----
-
-## Notes
-
-- **If two people edit at the exact same second**, the second save can overwrite
-  the first (this app doesn't merge conflicting edits). In practice, for a small
-  family operation this almost never causes real problems.
-- **To update the app later** (e.g. if I make more changes for you), just replace
-  `index.html` in the GitHub repo with the new version — the Upload files button
-  works the same way. Your data stays in Firebase, untouched.
-- **Your PIN lock** (set it in the Settings tab if you haven't) is your main
-  protection now that the app is on the open internet — don't skip it.
+If it loads fine on mobile data but not on your usual Wi-Fi, the fix is on
+your router/network side, not in this app's code.
