@@ -1,5 +1,10 @@
 const CACHE_NAME = 'samartha-erp-v1';
-const APP_SHELL = ['./index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
+const APP_SHELL = [
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -17,11 +22,14 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Network-first for everything (so live data / Firebase always tries fresh),
-// falling back to the cached app shell if offline.
+// App shell cache-first (so the page still opens with a weak/no signal).
+// Live data (Firestore) always goes to the network — never cached here.
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.hostname.includes('googleapis.com') || url.hostname.includes('firebaseio.com')) {
+    return; // let Firestore requests go straight to the network
+  }
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
